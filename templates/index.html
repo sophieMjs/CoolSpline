@@ -1,0 +1,489 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#101d32" />
+    <title>CoolSpline | Inteligencia térmica</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/styles.css') }}"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body>
+    <div class="ambient ambient-one"></div>
+    <div class="ambient ambient-two"></div>
+
+    <main class="app-shell">
+      <header class="topbar glass">
+        <a class="brand" href="/" aria-label="CoolSpline inicio">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 52 42">
+              <path d="M3 33 C12 5 20 5 26 21 S39 37 49 7" />
+              <circle cx="3" cy="33" r="3" />
+              <circle cx="26" cy="21" r="3" />
+              <circle cx="49" cy="7" r="3" />
+            </svg>
+          </span>
+          <span
+            ><strong>CoolSpline</strong
+            ><small>INTELIGENCIA TÉRMICA</small></span
+          >
+        </a>
+        <div class="topbar-right">
+          <span class="live-dot"></span>
+          <span>Plataforma de monitoreo</span>
+          <span class="topbar-tag">BETA</span>
+        </div>
+      </header>
+
+      <section class="hero">
+        <div class="hero-copy">
+          <span class="eyebrow"
+            ><span class="eyebrow-line"></span> ANÁLISIS Y PREDICCIÓN</span
+          >
+          <h1>
+            Anticipa el comportamiento<br /><span
+              >térmico de tu centro de datos.</span
+            >
+          </h1>
+          <p>
+            Interpolación con splines cúbicos naturales, análisis de variación
+            térmica y pronóstico preactivo.
+          </p>
+        </div>
+        <div class="hero-status glass">
+          <span class="status-icon">⌁</span>
+          <div>
+            <small>MODELO MATEMÁTICO</small
+            ><strong>Spline cúbico natural</strong
+            ><span>Evaluación minuto a minuto</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="section-heading">
+        <div>
+          <span class="section-index">01</span>
+          <h2>Configuración del análisis</h2>
+        </div>
+        <p>Define las mediciones y los parámetros del modelo.</p>
+      </section>
+
+      <section class="config-grid">
+        <article class="panel glass">
+          <div class="panel-heading">
+            <div class="panel-icon">⌗</div>
+            <div>
+              <h3>Datos de temperatura</h3>
+              <p>Mediciones del centro de datos</p>
+            </div>
+          </div>
+          <label class="field-label" for="modoDatos">Forma de ingreso</label>
+          <select id="modoDatos" class="control">
+            <option value="manual">Ingreso manual</option>
+            <option value="csv">Archivo CSV</option>
+          </select>
+          <div id="bloqueManual" class="input-block">
+            <label class="field-label" for="datosManual"
+              >Hora (h), temperatura (°C)</label
+            >
+            <textarea id="datosManual" class="control data-editor" rows="10">
+6,22.0
+8,24.5
+10,27.0
+12,30.2
+14,31.5
+16,31.0
+18,29.8
+20,27.5
+22,25.0
+24,23.2</textarea
+            >
+            <span class="field-hint"
+              >Una medición por línea. Usa punto para los decimales.</span
+            >
+          </div>
+          <div id="bloqueCsv" class="input-block" hidden>
+            <label class="field-label" for="archivoCsv"
+              >Selecciona tu archivo</label
+            >
+            <input
+              type="file"
+              id="archivoCsv"
+              class="control file-control"
+              accept=".csv"
+            />
+            <span class="field-hint"
+              >CSV con dos columnas: hora, temperatura. Se admite
+              encabezado.</span
+            >
+          </div>
+        </article>
+
+        <article class="panel glass">
+          <div class="panel-heading">
+            <div class="panel-icon">⚙</div>
+            <div>
+              <h3>Parámetros térmicos</h3>
+              <p>Umbrales y tiempo de anticipación</p>
+            </div>
+          </div>
+          <div class="field-grid">
+            <div>
+              <label class="field-label" for="umbralVel"
+                >Calentamiento rápido (°C/min)</label
+              ><input
+                class="control"
+                type="number"
+                id="umbralVel"
+                value="0.025"
+                min="0.001"
+                step="0.005"
+              />
+            </div>
+            <div>
+              <label class="field-label" for="umbralTemp"
+                >Temperatura crítica (°C)</label
+              ><input
+                class="control"
+                type="number"
+                id="umbralTemp"
+                value="30"
+                step="0.5"
+              />
+            </div>
+            <div class="field-full">
+              <label class="field-label" for="anticipacion"
+                >Anticipación (minutos)</label
+              ><input
+                class="control"
+                type="number"
+                id="anticipacion"
+                value="30"
+                min="0"
+                step="5"
+              />
+            </div>
+          </div>
+          <div class="info-note">
+            <strong>Detección:</strong> el umbral de 0.025 °C/min equivale a 1.5
+            °C/h. Las alertas se calculan a partir de la derivada del modelo.
+          </div>
+        </article>
+      </section>
+
+      <section class="section-heading compact-heading">
+        <div>
+          <span class="section-index">02</span>
+          <h2>Fuente de perturbación externa</h2>
+        </div>
+        <p>Incorpora condiciones ambientales al comportamiento térmico.</p>
+      </section>
+
+      <section class="panel glass forecast-config">
+        <div class="forecast-select-row">
+          <div>
+            <div class="panel-heading no-margin">
+              <div class="panel-icon">☼</div>
+              <div>
+                <h3>Pronóstico ambiental</h3>
+                <p>Selecciona cómo se modela la influencia externa.</p>
+              </div>
+            </div>
+          </div>
+          <select id="modoPronostico" class="control forecast-select">
+            <option value="api">Open-Meteo · Mérida, Yucatán</option>
+            <option value="simulado">Simulación senoidal</option>
+          </select>
+        </div>
+        <div id="bloqueApi" class="api-fields">
+          <div class="api-location">
+            <span class="location-pin">⌖</span>
+            <div>
+              <strong>Mérida, Yucatán</strong
+              ><small>Coordenadas predeterminadas · 20.9674., −89.5926.</small>
+            </div>
+            <span class="source-pill">OPEN-METEO</span>
+          </div>
+          <div class="api-date">
+            <label class="field-label" for="fecha">Fecha del pronóstico</label
+            ><input type="date" id="fecha" class="control" />
+          </div>
+          <input type="hidden" id="lat" value="20.9674" />
+          <input type="hidden" id="lon" value="-89.5926" />
+        </div>
+        <div id="bloqueSimulado" class="field-grid simulated-fields" hidden>
+          <div>
+            <label class="field-label" for="amplitud"
+              >Amplitud de perturbación (°C)</label
+            ><input
+              type="number"
+              id="amplitud"
+              class="control"
+              value="2"
+              min="0"
+              step="0.5"
+            />
+          </div>
+          <div>
+            <label class="field-label" for="horaPico"
+              >Hora del pico (0–24 h)</label
+            ><input
+              type="number"
+              id="horaPico"
+              class="control"
+              value="14"
+              min="0"
+              max="24"
+              step="0.5"
+            />
+          </div>
+        </div>
+        <div class="model-explanation">
+          <div class="explanation-symbol">ƒ</div>
+          <div>
+            <strong>¿Cómo se combina?</strong>
+            <p>
+              Reconstruimos la temperatura interior a partir de las mediciones
+              que nos proporciones. La temperatura exterior y la radiación solar
+              se convierten en una perturbación térmica estimada.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section-heading compact-heading">
+        <div>
+          <span class="section-index">03</span>
+          <h2>Control energético y mejora integrada</h2>
+        </div>
+        <p>Supuestos de la simulación y sensibilidad de anomalías.</p>
+      </section>
+      <section class="config-grid">
+        <article class="panel glass">
+          <div class="panel-heading">
+            <div class="panel-icon">◈</div>
+            <div>
+              <h3>Potencia de ventilación</h3>
+              <p>Comparación Todo/Nada vs. velocidad variable</p>
+            </div>
+          </div>
+          <label class="field-label" for="potenciaVentilador"
+            >Potencia nominal del conjunto de ventiladores (kW)</label
+          >
+          <input
+            id="potenciaVentilador"
+            class="control"
+            type="number"
+            min="0.01"
+            step="0.1"
+            value="1"
+          />
+        </article>
+        <article class="panel glass">
+          <div class="panel-heading">
+            <div class="panel-icon">⌁</div>
+            <div>
+              <h3>Detección de anomalías</h3>
+              <p>Mejora adicional: predicción causal por medición</p>
+            </div>
+          </div>
+          <label class="field-label" for="umbralAnomalia"
+            >Desviación anómala absoluta (°C)</label
+          >
+          <input
+            id="umbralAnomalia"
+            class="control"
+            type="number"
+            min="0.1"
+            step="0.1"
+            value="2"
+          />
+          <div class="info-note">
+            Una alerta indica desviación del modelo, no confirma una falla del
+            sensor.
+          </div>
+        </article>
+      </section>
+      <div class="action-row">
+        <button id="btnAnalizar" class="primary-button">
+          <span>Ejecutar análisis</span><span class="button-arrow">↗</span>
+        </button>
+      </div>
+      <div id="error" class="error-message" role="alert" hidden></div>
+
+      <section id="resultados" hidden>
+        <div class="section-heading results-heading">
+          <div>
+            <span class="section-index">03</span>
+            <h2>Panel de resultados</h2>
+          </div>
+          <span class="result-status"
+            ><span class="live-dot"></span> Análisis completado</span
+          >
+        </div>
+
+        <div id="weatherPanel" class="weather-panel glass">
+          <div class="weather-panel-head">
+            <div>
+              <span class="eyebrow">CONTEXTO AMBIENTAL</span>
+              <h3>Información del pronóstico</h3>
+            </div>
+            <span id="weatherSource" class="source-pill">OPEN-METEO</span>
+          </div>
+          <div id="weatherInfo" class="weather-grid"></div>
+          <p id="weatherDisclaimer" class="weather-disclaimer"></p>
+        </div>
+
+        <div id="kpiGrid" class="kpi-grid"></div>
+
+        <div class="section-heading chart-heading">
+          <div>
+            <span class="section-index">04</span>
+            <h2>Comportamiento térmico</h2>
+          </div>
+          <p>Curvas calculadas a partir de los datos y del modelo ambiental.</p>
+        </div>
+        <div class="charts-grid">
+          <article class="chart-card glass chart-wide">
+            <div class="chart-title">
+              <div>
+                <h3>Interpolación: spline vs. lineal</h3>
+                <p>Reconstrucción de la temperatura entre mediciones</p>
+              </div>
+              <span class="chart-number">01</span>
+            </div>
+            <div class="chart-wrap"><canvas id="grafica1"></canvas></div>
+          </article>
+          <article class="chart-card glass">
+            <div class="chart-title">
+              <div>
+                <h3>Pronóstico térmico</h3>
+                <p>Temperatura base, ajustada y anticipada</p>
+              </div>
+              <span class="chart-number">02</span>
+            </div>
+            <div class="chart-wrap"><canvas id="grafica2"></canvas></div>
+          </article>
+          <article class="chart-card glass">
+            <div class="chart-title">
+              <div>
+                <h3>Velocidad de cambio</h3>
+                <p>Derivada de la temperatura en °C/h</p>
+              </div>
+              <span class="chart-number">03</span>
+            </div>
+            <div class="chart-wrap"><canvas id="grafica3"></canvas></div>
+          </article>
+        </div>
+
+        <div class="section-heading chart-heading">
+          <div>
+            <span class="section-index">05</span>
+            <h2>Validación del modelo</h2>
+          </div>
+          <p>Comparación del error frente a los valores reales reservados.</p>
+        </div>
+        <article class="panel glass validation-panel">
+          <div id="validationSummary" class="validation-summary"></div>
+          <div class="table-scroll">
+            <table id="validationTable" class="data-table"></table>
+          </div>
+          <div class="validation-footnote">
+            LOO interior (Leave-One-Out): se excluye individualmente cada nodo
+            interior, manteniendo los extremos como condiciones del intervalo.
+          </div>
+          <div id="verificationInfo" class="verification-info"></div>
+        </article>
+
+        <div class="section-heading chart-heading">
+          <div>
+            <span class="section-index">06</span>
+            <h2>Alertas y registro térmico</h2>
+          </div>
+          <p>Eventos detectados durante el intervalo analizado.</p>
+        </div>
+        <div class="events-grid">
+          <article class="panel glass event-card">
+            <div class="event-card-title">
+              <span class="event-icon warning">!</span>
+              <div>
+                <h3>Calentamiento rápido</h3>
+                <p>La derivada supera el umbral configurado.</p>
+              </div>
+            </div>
+            <div id="heatingAlerts" class="event-content"></div>
+          </article>
+          <article class="panel glass event-card">
+            <div class="event-card-title">
+              <span class="event-icon danger">⌁</span>
+              <div>
+                <h3>Temperatura crítica</h3>
+                <p>Registros donde la temperatura base supera el límite.</p>
+              </div>
+            </div>
+            <div id="hotIntervals" class="event-content"></div>
+            <details class="minute-details">
+              <summary>Ver todos los minutos registrados</summary>
+              <div id="hotMinutes" class="minute-list"></div>
+            </details>
+          </article>
+          <article class="panel glass event-card">
+            <div class="event-card-title">
+              <span class="event-icon info">↗</span>
+              <div>
+                <h3>Control preactivo</h3>
+                <p>Detecta ahora una condición de calentamiento prevista.</p>
+              </div>
+            </div>
+            <div id="preactiveAlerts" class="event-content"></div>
+          </article>
+        </div>
+        <div class="section-heading chart-heading">
+          <div>
+            <span class="section-index">07</span>
+            <h2>Comparación de ventiladores</h2>
+          </div>
+          <p>
+            Consumo teórico para dos políticas aplicadas sobre la misma
+            trayectoria térmica.
+          </p>
+        </div>
+        <article class="panel glass">
+          <div id="energySummary" class="validation-summary"></div>
+          <div class="chart-wrap"><canvas id="grafica4"></canvas></div>
+          <p id="energyNote" class="closing-note"></p>
+        </article>
+        <div class="section-heading chart-heading">
+          <div>
+            <span class="section-index">08</span>
+            <h2>Mejora integrada · anomalías térmicas</h2>
+          </div>
+          <p>Pronóstico de cada nueva medición sin utilizar datos futuros.</p>
+        </div>
+        <article class="panel glass">
+          <div id="anomalySummary" class="validation-summary"></div>
+          <div class="table-scroll">
+            <table id="anomalyTable" class="data-table"></table>
+          </div>
+          <p id="anomalyNote" class="closing-note"></p>
+        </article>
+      </section>
+
+      <footer class="footer">
+        <span>CoolSpline</span
+        ><span>Modelo de interpolación y análisis térmico</span>
+      </footer>
+    </main>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+  </body>
+</html>
